@@ -1,42 +1,114 @@
 # Python Data Basics
 
-Small Python data environment test project for my Fachinformatiker Daten- und Prozessanalyse setup.
+A small Python data environment and learning repository for my local developer setup.
 
-## Environment
-
-- macOS Sonoma on Intel iMac
-- Python 3.12 virtual environment
-- PyCharm
-- DataSpell
-- Jupyter Notebook
-- pandas
-- numpy
-- matplotlib
-- scikit-learn
+This repository verifies that a Python 3.12 data workflow works correctly with a project-specific virtual environment, PyCharm, DataSpell, Jupyter Notebook, pandas, NumPy, matplotlib, scikit-learn, Git, and GitHub.
 
 ## Purpose
 
-This repository verifies that my local Python data stack works correctly with a project-specific virtual environment and can be used from PyCharm, DataSpell, Git, and GitHub.
+This is not intended to be a large data science project. It is a compact baseline repository for:
+
+- verifying a clean Python data environment
+- practicing Python data analysis fundamentals
+- using a project-specific virtual environment
+- working with pandas, NumPy, matplotlib, and scikit-learn
+- testing PyCharm and DataSpell with the same interpreter
+- keeping a clean Git/GitHub workflow for Python projects
+
+Python is one of my core technical skills in my current learning path. My main focus is data and process analysis, SQL, Python, BI, and Microsoft-oriented data tooling.
+
+## Tested Environment
+
+- iMac Retina 4K, 21.5-inch, Late 2015
+- Intel x86_64
+- macOS Sonoma 14.8.7 via OpenCore Legacy Patcher
+- PyCharm via JetBrains Toolbox
+- DataSpell via JetBrains Toolbox
+- Python 3.12.13
+- Project-specific `.venv`
+- pandas
+- NumPy
+- matplotlib
+- scikit-learn
+- Jupyter Notebook
+- Git / GitHub
+
+This repository also documents that the Python data stack works on a legacy Intel Mac setup used as a stable learning and development machine.
+
+## Repository Structure
+
+    .
+    ├── main.py
+    ├── dataspell_test.ipynb
+    ├── README.md
+    ├── requirements.txt
+    ├── requirements-core.txt
+    ├── LICENSE
+    ├── .editorconfig
+    └── .gitignore
+
+The `.venv/` directory is intentionally excluded from Git.
 
 ## Setup
 
-Create and activate the virtual environment:
+Create the virtual environment with Python 3.12:
 
     /usr/local/bin/python3.12 -m venv .venv
+
+Activate it:
+
     source .venv/bin/activate
 
-Install dependencies:
+Install the exact tested dependency set:
 
     python -m pip install -r requirements.txt
 
-Run the Python test:
+Alternatively, install only the core packages:
+
+    python -m pip install -r requirements-core.txt
+
+## Run the Python Example
+
+Run:
 
     python main.py
 
-Open the notebook:
+The script verifies the interpreter and package versions, creates a small example DataFrame, and trains a minimal logistic regression model on synthetic learning data.
+
+## DataSpell Notebook
+
+The notebook
 
     dataspell_test.ipynb
 
+verifies that DataSpell uses the same project-specific Python 3.12 virtual environment and can import the core data stack.
+
+## What This Demonstrates
+
+This repository demonstrates a working Python data baseline setup using:
+
+- Python 3.12
+- a project-specific virtual environment
+- pandas for tabular data handling
+- NumPy for numerical work
+- matplotlib availability for visualization
+- scikit-learn for a minimal machine learning example
+- Jupyter Notebook / DataSpell for notebook-based work
+- PyCharm as the primary Python IDE
+- Git and GitHub for version control
+
+## Next Steps
+
+Possible future additions:
+
+- a small CSV analysis example
+- a simple matplotlib visualization
+- a notebook with a short exploratory data analysis workflow
+- a basic logistic regression example with clearer explanation
+- a small SQL-to-pandas workflow using a local database
+
 ## Notes
 
-The .venv directory is intentionally excluded from Git. Dependencies are documented in requirements.txt.
+This repository is intentionally small. Its purpose is to document and verify a clean Python data development setup before building larger data analysis and BI-related projects.
+
+No virtual environment, IDE metadata, cache files, or machine-specific files are committed.
