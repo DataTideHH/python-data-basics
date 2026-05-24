@@ -37,51 +37,79 @@ This repository also documents that the Python data stack works on a legacy Inte
 
 ## Repository Structure
 
-    .
-    ├── main.py
-    ├── dataspell_test.ipynb
-    ├── README.md
-    ├── requirements.txt
-    ├── requirements-core.txt
-    ├── LICENSE
-    ├── .editorconfig
-    └── .gitignore
+```text
+python-data-basics/
+├── main.py
+├── dataspell_test.ipynb
+├── README.md
+├── requirements.txt
+├── requirements-core.txt
+├── LICENSE
+├── .editorconfig
+└── .gitignore
+```
 
-The `.venv/` directory is intentionally excluded from Git.
+Local virtual environments, IDE metadata, cache files, and machine-specific files are intentionally excluded from Git.
+
+```text
+.venv/
+.idea/
+__pycache__/
+*.pyc
+.DS_Store
+```
 
 ## Setup
 
 Create the virtual environment with Python 3.12:
 
-    /usr/local/bin/python3.12 -m venv .venv
+```zsh
+/usr/local/bin/python3.12 -m venv .venv
+```
 
 Activate it:
 
-    source .venv/bin/activate
+```zsh
+source .venv/bin/activate
+```
 
 Install the exact tested dependency set:
 
-    python -m pip install -r requirements.txt
+```zsh
+python -m pip install -r requirements.txt
+```
 
 Alternatively, install only the core packages:
 
-    python -m pip install -r requirements-core.txt
+```zsh
+python -m pip install -r requirements-core.txt
+```
 
 ## Run the Python Example
 
 Run:
 
-    python main.py
+```zsh
+python main.py
+```
 
 The script verifies the interpreter and package versions, creates a small example DataFrame, and trains a minimal logistic regression model on synthetic learning data.
 
+Expected output includes:
+
+```text
+Python data environment check
+Python: 3.12.13
+pandas
+NumPy
+matplotlib
+scikit-learn
+Minimal logistic regression example
+```
+
 ## DataSpell Notebook
 
-The notebook
-
-    dataspell_test.ipynb
-
-verifies that DataSpell uses the same project-specific Python 3.12 virtual environment and can import the core data stack.
+The notebook `dataspell_test.ipynb` verifies that DataSpell uses the same project-specific Python 3.12 virtual environment and can import the core data stack.
 
 ## What This Demonstrates
 
