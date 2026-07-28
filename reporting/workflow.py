@@ -14,7 +14,7 @@ from pandas.testing import assert_frame_equal
 
 from data_quality import build_module_kpis
 
-matplotlib.use("Agg")
+plt.switch_backend("Agg")
 matplotlib.rcParams["svg.fonttype"] = "none"
 matplotlib.rcParams["svg.hashsalt"] = "python-data-basics-reporting"
 
