@@ -1,18 +1,14 @@
-"""
-JSON basics.
+"""JSON normalization basics.
 
-This example demonstrates:
-- parsing JSON text
-- accessing nested dictionaries and lists
-- converting selected values into a pandas DataFrame
-
-The structure is similar to many API responses.
+This example parses an API-like JSON document, reads nested dictionaries and
+lists, and converts selected values into a tabular pandas DataFrame.
 """
+
+from __future__ import annotations
 
 import json
 
 import pandas as pd
-
 
 JSON_TEXT = """
 {
@@ -56,10 +52,10 @@ def main() -> None:
             }
         )
 
-    df = pd.DataFrame(rows)
+    frame = pd.DataFrame(rows)
 
     print("Normalized table:")
-    print(df)
+    print(frame)
 
 
 if __name__ == "__main__":

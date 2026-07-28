@@ -1,20 +1,15 @@
-"""
-CSV / pandas basics.
+"""CSV and pandas basics.
 
-This example uses a small in-memory CSV-style dataset.
-It demonstrates:
-- reading structured data
-- creating a pandas DataFrame
-- deriving a calculated column
-- grouping and aggregating data
-
-No external files are required.
+This example uses a small in-memory CSV-style dataset. It demonstrates reading
+structured data, creating a pandas DataFrame, filtering, grouping and
+aggregation. No external files are required.
 """
+
+from __future__ import annotations
 
 from io import StringIO
 
 import pandas as pd
-
 
 CSV_DATA = """city,category,month,value
 Hamburg,weather,2026-06,18.5
@@ -27,17 +22,17 @@ Munich,traffic,2026-06,69
 
 
 def main() -> None:
-    df = pd.read_csv(StringIO(CSV_DATA))
+    frame = pd.read_csv(StringIO(CSV_DATA))
 
     print("Raw data:")
-    print(df)
+    print(frame)
 
     print("\nAverage value by category:")
-    summary = df.groupby("category", as_index=False)["value"].mean()
+    summary = frame.groupby("category", as_index=False)["value"].mean()
     print(summary)
 
     print("\nRows for Hamburg:")
-    print(df[df["city"] == "Hamburg"])
+    print(frame[frame["city"] == "Hamburg"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,131 @@
+name: Python quality
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/python-quality.yml"
+      - "*.py"
+      - "*.ipynb"
+      - "pyproject.toml"
+      - "requirements*.txt"
+      - "examples/**"
+      - "tests/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/python-quality.yml"
+      - "*.py"
+      - "*.ipynb"
+      - "pyproject.toml"
+      - "requirements*.txt"
+      - "examples/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python 3.12 · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - windows-2025
+
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Show Python and pip versions
+        run: |
+          python --version
+          python -m pip --version
+
+      - name: Install project and quality dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,ml,notebook]"
+
+      - name: Compile Python sources
+        run: python -m compileall -q main.py examples tests
+
+      - name: Run Ruff lint checks
+        id: ruff-lint
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $output = & python -m ruff check main.py examples tests 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | Tee-Object -FilePath ruff-lint.txt
+          exit $exitCode
+
+      - name: Verify Ruff formatting
+        id: ruff-format
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $output = & python -m ruff format --check main.py examples tests 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | Tee-Object -FilePath ruff-format.txt
+          exit $exitCode
+
+      - name: Run pytest suite
+        run: python -m pytest
+
+      - name: Run baseline entry point
+        run: python main.py
+
+      - name: Run optional ML example
+        run: python examples/optional/logistic_regression_basics.py
+
+      - name: Execute clean notebook copy
+        run: |
+          python -c "from pathlib import Path; Path('.ci-output').mkdir(exist_ok=True)"
+          jupyter nbconvert --to notebook --execute dataspell_test.ipynb --output environment-check.executed.ipynb --output-dir .ci-output --ExecutePreprocessor.timeout=120
+
+      - name: Upload quality diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-diagnostics-${{ matrix.os }}
+          path: |
+            ruff-lint.txt
+            ruff-format.txt
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Enforce Ruff quality gate
+        if: always()
+        shell: pwsh
+        run: |
+          $lintOutcome = "${{ steps.ruff-lint.outcome }}"
+          $formatOutcome = "${{ steps.ruff-format.outcome }}"
+
+          if ($lintOutcome -ne "success" -or $formatOutcome -ne "success") {
+              throw "Ruff quality gate failed. Download the quality diagnostics artifact for details."
+          }
