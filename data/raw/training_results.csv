@@ -1,0 +1,16 @@
+result_id,learner_id,module,assessment_date,score,max_score,pass_score
+R001,L001,SQL Basics,2026-07-01,82,100,60
+R002,L002,SQL Basics,2026-07-01,58,100,60
+R003,L003, Python Basics ,2026-07-02,75,100,60
+R003,L003, Python Basics ,2026-07-02,75,100,60
+R004,L004,Python Basics,2026-07-02,,100,60
+R005,L005,Power BI Basics,2026-07-03,110,100,60
+R006,L006,Power BI Basics,not-a-date,70,100,60
+R007,L007,Process Analysis,2026-07-04,65,100,60
+R008,L008,Process Analysis,2026-07-04,45,100,60
+R009,,SQL Basics,2026-07-05,80,100,60
+R010,L010,Data Quality,2026-07-05,80,0,60
+R011,L011,Data Quality,2026-07-05,88,100,60
+R012,L012,Data Quality,2026-07-05,55,100,60
+R013,L013,Data Quality,2026-07-05,80,100,120
+R014,L014,SQL Basics,2026-07-06,92,100,60
