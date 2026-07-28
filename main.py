@@ -1,64 +1,82 @@
+from __future__ import annotations
+
+import platform
 import sys
 
 import matplotlib
 import numpy as np
 import pandas as pd
-import sklearn
-from sklearn.linear_model import LogisticRegression
+
+MINIMUM_PYTHON = (3, 12)
+REQUIRED_COLUMNS = {"city", "category", "value"}
 
 
-def print_environment() -> None:
-    print("Python data environment check")
-    print("-----------------------------")
-    print(f"Executable: {sys.executable}")
-    print(f"Python: {sys.version.split()[0]}")
-    print(f"pandas: {pd.__version__}")
-    print(f"NumPy: {np.__version__}")
-    print(f"matplotlib: {matplotlib.__version__}")
-    print(f"scikit-learn: {sklearn.__version__}")
-    print()
+def collect_environment() -> dict[str, str]:
+    """Return the interpreter and direct runtime dependency versions."""
+    return {
+        "python": platform.python_version(),
+        "implementation": platform.python_implementation(),
+        "pandas": pd.__version__,
+        "numpy": np.__version__,
+        "matplotlib": matplotlib.__version__,
+    }
 
 
-def build_sample_data() -> pd.DataFrame:
+def build_baseline_data() -> pd.DataFrame:
+    """Create deterministic synthetic data for a small pandas sanity check."""
     return pd.DataFrame(
         {
-            "hours_studied": [1, 2, 3, 4, 5, 6, 7, 8],
-            "practice_score": [45, 50, 55, 60, 66, 72, 78, 85],
-            "passed": [0, 0, 0, 0, 1, 1, 1, 1],
+            "city": ["Hamburg", "Berlin", "Hamburg", "Berlin"],
+            "category": ["quality", "quality", "processing", "processing"],
+            "value": [92.0, 88.0, 71.0, 77.0],
         }
     )
 
 
-def run_logistic_regression(df: pd.DataFrame) -> None:
-    features = df[["hours_studied", "practice_score"]]
-    target = df["passed"]
+def summarize_baseline_data(frame: pd.DataFrame) -> pd.DataFrame:
+    """Validate the input shape and calculate one summary row per category."""
+    missing_columns = REQUIRED_COLUMNS.difference(frame.columns)
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise ValueError(f"Missing required columns: {missing}")
 
-    model = LogisticRegression()
-    model.fit(features, target)
+    if frame.empty:
+        raise ValueError("Baseline data must contain at least one row.")
 
-    new_student = pd.DataFrame(
-        {
-            "hours_studied": [5],
-            "practice_score": [70],
-        }
+    if frame["value"].isna().any():
+        raise ValueError("Baseline data contains missing values in 'value'.")
+
+    summary = (
+        frame.groupby("category", as_index=False)
+        .agg(row_count=("value", "size"), average_value=("value", "mean"))
+        .sort_values("category", ignore_index=True)
     )
+    return summary
 
-    probability = model.predict_proba(new_student)[0][1]
 
-    print("Sample data")
-    print("-----------")
-    print(df.to_string(index=False))
-    print()
+def run_baseline_check() -> pd.DataFrame:
+    """Run the deterministic DataFrame transformation used by local and CI checks."""
+    if sys.version_info < MINIMUM_PYTHON:
+        required = ".".join(str(part) for part in MINIMUM_PYTHON)
+        raise RuntimeError(f"Python {required} or newer is required.")
 
-    print("Minimal logistic regression example")
-    print("-----------------------------------")
-    print(f"Predicted pass probability for the sample student: {probability:.2%}")
+    summary = summarize_baseline_data(build_baseline_data())
+    if summary["row_count"].sum() != 4 or len(summary) != 2:
+        raise RuntimeError("The baseline pandas transformation returned unexpected results.")
+
+    return summary
 
 
 def main() -> None:
-    print_environment()
-    sample_data = build_sample_data()
-    run_logistic_regression(sample_data)
+    print("Python data baseline check")
+    print("--------------------------")
+    for name, version in collect_environment().items():
+        print(f"{name}: {version}")
+
+    print("\nDeterministic pandas summary")
+    print("----------------------------")
+    print(run_baseline_check().to_string(index=False))
+    print("\nBaseline check passed.")
 
 
 if __name__ == "__main__":
