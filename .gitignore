@@ -10,6 +10,7 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+.ci-output/
 
 # Test / tooling caches
 .pytest_cache/
@@ -29,6 +30,8 @@ dist/
 
 # macOS
 .DS_Store
+
+# Local configuration and credentials
 .env
 *.env
 credentials.json
