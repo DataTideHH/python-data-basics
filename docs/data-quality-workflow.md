@@ -67,7 +67,7 @@ From the repository root:
 ```bash
 python -m data_quality \
   --input data/raw/training_results.csv \
-  --output output/data-quality
+  --output .ci-output/data-quality
 ```
 
 PowerShell uses the same arguments:
@@ -75,14 +75,14 @@ PowerShell uses the same arguments:
 ```powershell
 python -m data_quality `
   --input "data/raw/training_results.csv" `
-  --output "output/data-quality"
+  --output ".ci-output/data-quality"
 ```
 
-Generated local output is ignored by Git.
+The `.ci-output/` directory is already ignored by Git.
 
 ## Expected sample result
 
-The committed fixture contains 15 input rows. The verified workflow accepts 8 analysis-ready rows and rejects 7 rows, including the later copy of the exact duplicate.
+The committed fixture contains 15 input rows. The expected workflow result is 8 analysis-ready rows and 7 rejected rows, including the later copy of the exact duplicate.
 
 Expected module KPI control values include:
 
