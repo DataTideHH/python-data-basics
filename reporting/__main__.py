@@ -39,14 +39,8 @@ def main() -> int:
     print(f"Modules: {result.summary['module_count']}")
     print(f"Results: {result.summary['result_count']}")
     print(f"Rejected rows: {result.summary['rejected_row_count']}")
-    print(
-        "Overall average score: "
-        f"{result.summary['overall_average_score_percentage']:.2f}%"
-    )
-    print(
-        "Overall pass rate: "
-        f"{result.summary['overall_pass_rate_percentage']:.2f}%"
-    )
+    print(f"Overall average score: {result.summary['overall_average_score_percentage']:.2f}%")
+    print(f"Overall pass rate: {result.summary['overall_pass_rate_percentage']:.2f}%")
     print(f"Output directory: {result.output_dir}")
     return 0
 
