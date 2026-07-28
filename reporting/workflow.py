@@ -107,8 +107,10 @@ def reconcile_module_kpis(cleaned: pd.DataFrame, persisted_kpis: pd.DataFrame) -
 
     recalculated = build_module_kpis(cleaned).loc[:, KPI_COLUMNS]
     recalculated = recalculated.sort_values("module", kind="stable").reset_index(drop=True)
-    persisted = persisted_kpis.loc[:, KPI_COLUMNS].sort_values("module", kind="stable").reset_index(
-        drop=True
+    persisted = (
+        persisted_kpis.loc[:, KPI_COLUMNS]
+        .sort_values("module", kind="stable")
+        .reset_index(drop=True)
     )
 
     try:
@@ -133,15 +135,13 @@ def build_rejection_reason_summary(rejected: pd.DataFrame) -> pd.DataFrame:
     if rejected.empty:
         return pd.DataFrame(columns=["rejection_reason", "rejected_row_count"])
 
-    reasons = (
-        rejected["rejection_reasons"]
-        .astype("string")
-        .str.split("|")
-        .explode()
-        .str.strip()
-    )
+    reasons = rejected["rejection_reasons"].astype("string").str.split("|").explode().str.strip()
     reasons = reasons[reasons.ne("") & reasons.notna()]
-    summary = reasons.value_counts().rename_axis("rejection_reason").reset_index(name="rejected_row_count")
+    summary = (
+        reasons.value_counts()
+        .rename_axis("rejection_reason")
+        .reset_index(name="rejected_row_count")
+    )
     summary = summary.sort_values(
         ["rejected_row_count", "rejection_reason"],
         ascending=[False, True],
