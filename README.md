@@ -2,11 +2,11 @@
 
 [![Python quality](https://github.com/DataTideHH/python-data-basics/actions/workflows/python-quality.yml/badge.svg)](https://github.com/DataTideHH/python-data-basics/actions/workflows/python-quality.yml)
 
-**Python 3.12 · pandas · data quality · pytest · Ruff · Jupyter · GitHub Actions**
+**Python 3.12 · pandas · data quality · reporting · matplotlib · pytest · Ruff · Jupyter · GitHub Actions**
 
-This repository is a compact, tested foundation for reproducible Python Data/BI workflows. It combines environment setup, deterministic pandas transformations, a small auditable data-quality workflow, notebook hygiene and cross-platform CI.
+This repository is a compact, tested foundation for reproducible Python Data/BI workflows. It combines environment setup, deterministic pandas transformations, an auditable data-quality workflow, reconciled reporting outputs, clean notebooks and cross-platform CI.
 
-It is part of my DataTideHH portfolio during the IHK retraining program in Data and Process Analysis. The scope remains deliberately bounded: this is a reusable learning baseline, not a production ETL platform, predictive-model showcase or finished business analysis.
+It is part of my DataTideHH portfolio during the IHK retraining program in Data and Process Analysis. The scope remains deliberately bounded: this is a reusable learning and verification baseline, not a production ETL platform, predictive-model showcase or enterprise reporting solution.
 
 ---
 
@@ -16,35 +16,46 @@ It is part of my DataTideHH portfolio during the IHK retraining program in Data 
 |---|---|
 | Python baseline | Python 3.12-compatible environment and deterministic pandas sanity check |
 | Dependency model | Runtime, notebook, optional ML and development groups in `pyproject.toml` |
-| Data-quality workflow | CSV input, schema checks, type conversion, row-level rejection, cleaning, KPIs and export |
-| Testing | pytest coverage for baseline logic, data-quality rules, notebook hygiene and optional ML |
+| Data-quality workflow | CSV input, schema checks, controlled conversion, rejection reasons, cleaning, KPIs and export |
+| Reporting workflow | KPI reconciliation, rejection-reason summary, control totals and Matplotlib SVG charts |
+| Notebook verification | Clean reporting notebook with tables, charts and explicit assertions |
+| Testing | pytest coverage for baseline logic, quality rules, reporting reconciliation and notebook hygiene |
 | Code quality | Ruff linting and formatting plus Python bytecode compilation |
-| Continuous integration | Ubuntu 24.04 and Windows 2025 matrix with Python 3.12 |
-| Credential safety | Synthetic/public-safe inputs; local environments and secrets excluded |
+| Continuous integration | Complete Ubuntu 24.04 and Windows 2025 matrix with Python 3.12 |
+| Credential safety | Synthetic/public-safe inputs; local environments, secrets and generated outputs excluded |
 
-## What This Repository Demonstrates
+## End-to-End Flow
 
-The repository focuses on small tasks that recur in Data/BI work:
+```text
+data/raw/training_results.csv
+        │
+        ▼
+data-quality validation and cleaning
+        │
+        ├── cleaned_results.csv
+        ├── rejected_results.csv
+        ├── module_kpis.csv
+        └── quality_report.json
+        │
+        ▼
+reporting reconciliation and presentation
+        │
+        ├── rejection_reason_summary.csv
+        ├── reporting_summary.json
+        ├── average_score_by_module.svg
+        └── pass_rate_by_module.svg
+        │
+        ▼
+clean reporting notebook with repeated control assertions
+```
 
-- create an isolated Python environment
-- define direct dependencies separately from development tooling
-- read raw CSV data as text before controlled conversion
-- enforce required columns and explicit value rules
-- preserve rejected records with reason codes
-- normalise identifiers and text fields
-- derive analysis-ready columns
-- aggregate deterministic module KPIs
-- export cleaned data, rejected rows, KPIs and a JSON quality report
-- test positive and negative data-quality cases
-- run the same checks on Windows and Linux
-
-More complete analyses remain in separate repositories. This project provides tested building blocks underneath them.
+The reporting layer does not trust a persisted KPI file blindly. It recalculates module KPIs from the cleaned records and fails when values differ.
 
 ---
 
 ## Quick Start
 
-Detailed setup instructions are in [`docs/setup.md`](docs/setup.md).
+Detailed platform instructions are in [`docs/setup.md`](docs/setup.md).
 
 ### Windows PowerShell
 
@@ -72,15 +83,13 @@ On the Intel iMac used for local portfolio work, Python 3.12 is available at `/u
 
 ## Data-Quality Workflow
 
-The main portfolio increment in this repository is the workflow in [`data_quality/`](data_quality/).
-
-It processes the synthetic raw file:
+The tested workflow in [`data_quality/`](data_quality/) processes:
 
 ```text
 data/raw/training_results.csv
 ```
 
-Run it from the repository root:
+### Run on Windows PowerShell
 
 ```powershell
 python -m data_quality `
@@ -88,7 +97,7 @@ python -m data_quality `
   --output ".ci-output/data-quality"
 ```
 
-Equivalent macOS/Linux command:
+### Run on macOS or Linux
 
 ```bash
 python -m data_quality \
@@ -96,7 +105,7 @@ python -m data_quality \
   --output .ci-output/data-quality
 ```
 
-The workflow writes:
+### Generated files
 
 ```text
 .ci-output/data-quality/
@@ -106,72 +115,128 @@ The workflow writes:
 └── quality_report.json
 ```
 
-### Validation rules
-
-Required fields:
-
-```text
-result_id
-learner_id
-module
-assessment_date
-score
-max_score
-pass_score
-```
-
-Implemented checks include:
+### Implemented validation rules
 
 - required-column validation
 - missing-value detection
 - strict ISO date parsing
-- numeric conversion
+- controlled numeric conversion
 - positive `max_score`
 - non-negative score and pass threshold
 - score not above maximum
 - pass threshold not above maximum
 - exact duplicate removal
 - conflicting duplicate rejection
-- whitespace and identifier normalisation
+- identifier and whitespace normalisation
 
-Invalid rows are not silently dropped. They are exported with explicit pipe-separated rejection reasons.
-
-### Derived fields
+Invalid rows are not silently discarded. They remain auditable in `rejected_results.csv` with explicit pipe-separated reason codes.
 
 Accepted records receive:
 
-- `source_row` for lineage back to the raw CSV
+- `source_row` for lineage to the raw CSV
 - `score_percentage`
-- Boolean `passed`
+- non-null Boolean `passed`
 
-### KPI output
-
-The workflow aggregates one row per module with:
-
-- result count
-- distinct learner count
-- average score percentage
-- passed count
-- failed count
-- pass-rate percentage
-
-The committed fixture contains 15 raw rows. The expected control totals are:
+The committed fixture contains 15 raw rows and produces:
 
 ```text
-accepted rows: 8
-rejected rows: 7
+accepted rows:               8
+rejected rows:               7
 exact duplicate rows removed: 1
 ```
 
-Detailed rules, expected module values and scope boundaries are documented in [`docs/data-quality-workflow.md`](docs/data-quality-workflow.md).
+Detailed rules and boundaries are documented in [`docs/data-quality-workflow.md`](docs/data-quality-workflow.md).
+
+---
+
+## Reporting Workflow
+
+Run reporting after the data-quality output exists.
+
+### Windows PowerShell
+
+```powershell
+python -m reporting `
+  --input ".ci-output/data-quality" `
+  --output ".ci-output/reporting"
+```
+
+### macOS and Linux
+
+```bash
+python -m reporting \
+  --input .ci-output/data-quality \
+  --output .ci-output/reporting
+```
+
+### Generated files
+
+```text
+.ci-output/reporting/
+├── average_score_by_module.svg
+├── pass_rate_by_module.svg
+├── rejection_reason_summary.csv
+└── reporting_summary.json
+```
+
+### Verified control totals
+
+| Control | Expected value |
+|---|---:|
+| Modules | 4 |
+| Accepted results | 8 |
+| Rejected rows | 7 |
+| Overall average score | 70.00% |
+| Overall pass rate | 62.50% |
+| Distinct rejection reasons | 7 |
+| KPI reconciliation | passed |
+
+The reporting workflow stops with a non-zero exit code when an expected input file is missing, a required column is absent or persisted module KPIs differ from the fresh calculation.
+
+Detailed behaviour is documented in [`docs/reporting-notebook.md`](docs/reporting-notebook.md).
+
+---
+
+## Verified Reference Charts
+
+The repository includes compact SVG snapshots for the committed synthetic fixture. The CI workflow generates fresh Matplotlib SVG files from the current outputs on every run.
+
+### Average score
+
+![Average score by module](docs/assets/average-score-by-module.svg)
+
+### Pass rate
+
+![Pass rate by module](docs/assets/pass-rate-by-module.svg)
+
+These charts are descriptive controls for a small synthetic dataset, not statistical evidence about real learners or business operations.
+
+---
+
+## Reporting Notebook
+
+[`notebooks/reporting_verification.ipynb`](notebooks/reporting_verification.ipynb) reads the generated data-quality outputs and performs the same reporting checks through the reusable package.
+
+It contains:
+
+1. verified module KPI table
+2. rejection-reason summary
+3. average-score chart
+4. pass-rate chart
+5. explicit assertions for the expected control totals
+6. final `Reporting notebook verification passed.` marker
+
+The committed notebook contains no outputs, execution counts, local paths or IDE timestamps. GitHub Actions executes a temporary copy only after the data-quality and reporting command-line workflows succeed.
+
+[`dataspell_test.ipynb`](dataspell_test.ipynb) remains the smaller environment and import check.
 
 ---
 
 ## Baseline Entry Point
 
-[`main.py`](main.py) remains a separate deterministic environment and pandas sanity check. It reports the active interpreter and direct runtime package versions, validates a tiny DataFrame and calculates a stable category summary.
+[`main.py`](main.py) is a separate deterministic environment and pandas sanity check. It reports the active interpreter and direct runtime package versions, validates a tiny DataFrame and calculates a stable category summary.
 
-This keeps environment verification separate from the larger row-level data-quality workflow.
+This separates environment verification from the row-level data-quality and reporting workflows.
 
 ---
 
@@ -185,31 +250,24 @@ This keeps environment verification separate from the larger row-level data-qual
 
 ---
 
-## Notebook Hygiene
-
-[`dataspell_test.ipynb`](dataspell_test.ipynb) verifies core package imports without committing:
-
-- cell outputs
-- execution counts
-- IDE execution timestamps
-- absolute local paths
-- incorrect legacy Python metadata
-
-GitHub Actions executes a temporary copy into `.ci-output/` and leaves the committed notebook unchanged.
-
----
-
 ## Dependency Model
 
 `pyproject.toml` is the source of truth.
 
 | Installation | Included scope |
 |---|---|
-| `python -m pip install -e .` | Runtime baseline and data-quality package |
+| `python -m pip install -e .` | Runtime baseline, data quality and reporting |
 | `python -m pip install -e ".[notebook]"` | Runtime plus Jupyter |
 | `python -m pip install -e ".[ml]"` | Runtime plus optional scikit-learn example |
 | `python -m pip install -e ".[dev]"` | Runtime plus pytest and Ruff |
 | `python -m pip install -r requirements-dev.txt` | Complete CI-equivalent environment |
+
+Installed command-line entry points:
+
+```text
+python-data-quality
+python-data-reporting
+```
 
 The requirement files remain small wrappers rather than machine-specific freezes of every transitive package.
 
@@ -218,13 +276,21 @@ The requirement files remain small wrappers rather than machine-specific freezes
 ## Local Quality Checks
 
 ```bash
-python -m compileall -q main.py data_quality examples tests
-python -m ruff check main.py data_quality examples tests
-python -m ruff format --check main.py data_quality examples tests
+python -m compileall -q main.py data_quality reporting examples tests
+python -m ruff check main.py data_quality reporting examples tests
+python -m ruff format --check main.py data_quality reporting examples tests
 python -m pytest
 python main.py
 python -m data_quality --input data/raw/training_results.csv --output .ci-output/data-quality
+python -m reporting --input .ci-output/data-quality --output .ci-output/reporting
 python examples/optional/logistic_regression_basics.py
+```
+
+Execute the notebooks separately:
+
+```bash
+jupyter nbconvert --to notebook --execute dataspell_test.ipynb --output environment-check.executed.ipynb --output-dir .ci-output --ExecutePreprocessor.timeout=120
+jupyter nbconvert --to notebook --execute notebooks/reporting_verification.ipynb --output reporting-verification.executed.ipynb --output-dir .ci-output --ExecutePreprocessor.timeout=120
 ```
 
 ---
@@ -242,13 +308,16 @@ Each matrix job:
 1. installs the project and optional quality groups
 2. compiles Python sources
 3. runs Ruff lint and format checks
-4. runs pytest
+4. runs the complete pytest suite
 5. executes `main.py`
-6. executes the complete data-quality workflow
-7. validates the expected row counts
-8. executes the optional ML example
-9. executes a clean notebook copy
-10. uploads short-lived generated workflow outputs and Ruff diagnostics
+6. executes the full data-quality workflow
+7. verifies the 15/8/7 source control totals
+8. executes the reporting workflow
+9. verifies KPI reconciliation and reporting totals
+10. executes the optional ML example
+11. executes both clean notebooks
+12. uploads short-lived verified data, reporting, chart and notebook artefacts
+13. enforces the final quality gate
 
 The workflow is quality assurance, not deployment or release automation.
 
@@ -264,17 +333,26 @@ python-data-basics/
 │   ├── __init__.py
 │   ├── __main__.py
 │   └── workflow.py
+├── reporting/
+│   ├── __init__.py
+│   ├── __main__.py
+│   └── workflow.py
+├── notebooks/
+│   └── reporting_verification.ipynb
 ├── docs/
-│   ├── api-json-oauth2-notes.md
+│   ├── assets/
+│   │   ├── average-score-by-module.svg
+│   │   └── pass-rate-by-module.svg
 │   ├── data-quality-workflow.md
-│   ├── ollama-local-api-notes.md
+│   ├── reporting-notebook.md
 │   └── setup.md
 ├── examples/
 ├── tests/
 │   ├── test_data_quality_workflow.py
 │   ├── test_main.py
 │   ├── test_notebook_hygiene.py
-│   └── test_optional_ml.py
+│   ├── test_optional_ml.py
+│   └── test_reporting_workflow.py
 ├── dataspell_test.ipynb
 ├── main.py
 ├── pyproject.toml
@@ -289,7 +367,7 @@ python-data-basics/
 
 Only synthetic learning data and public endpoints belong in this repository. The committed training-results file contains no real learners or personal information.
 
-Excluded content includes local environments, `.env` files, API keys, OAuth tokens, credential downloads, personal/customer data, IDE metadata, caches and generated workflow outputs.
+Excluded content includes local environments, `.env` files, API keys, OAuth tokens, credential downloads, personal/customer data, IDE metadata, caches, executed notebooks and generated workflow outputs.
 
 ---
 
@@ -297,12 +375,13 @@ Excluded content includes local environments, `.env` files, API keys, OAuth toke
 
 This repository does not claim:
 
-- a production Python package or ETL platform
+- a production Python package, ETL platform or semantic model
 - streaming or distributed processing
-- production orchestration or observability
+- production orchestration, observability or publication
 - regulatory data validation
 - a validated predictive model
-- a complete business analysis or dashboard
+- an interactive dashboard or Power BI report
+- statistical inference from the synthetic fixture
 - deployment or cloud infrastructure
 
-The workflow is intentionally small enough to inspect, run, test and explain in an interview or technical review.
+The complete workflow remains small enough to inspect, run, test and explain in an interview or technical review.

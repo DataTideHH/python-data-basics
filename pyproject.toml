@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-data-basics"
-version = "0.2.0"
+version = "0.3.0"
 description = "A compact, tested Python 3.12 foundation for reproducible Data and BI workflows."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -20,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 python-data-quality = "data_quality.__main__:main"
+python-data-reporting = "reporting.__main__:main"
 
 [project.optional-dependencies]
 notebook = [
@@ -35,7 +36,7 @@ dev = [
 
 [tool.setuptools]
 py-modules = ["main"]
-packages = ["data_quality"]
+packages = ["data_quality", "reporting"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
