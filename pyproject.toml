@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-data-basics"
-version = "0.1.0"
+version = "0.2.0"
 description = "A compact, tested Python 3.12 foundation for reproducible Data and BI workflows."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,6 +17,9 @@ dependencies = [
     "numpy>=1.26,<3",
     "pandas>=2.2,<4",
 ]
+
+[project.scripts]
+python-data-quality = "data_quality.__main__:main"
 
 [project.optional-dependencies]
 notebook = [
@@ -32,6 +35,7 @@ dev = [
 
 [tool.setuptools]
 py-modules = ["main"]
+packages = ["data_quality"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
@@ -40,7 +44,7 @@ testpaths = ["tests"]
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-extend-exclude = [".ci-output"]
+extend-exclude = [".ci-output", "output"]
 
 [tool.ruff.lint]
 select = ["B", "E4", "E7", "E9", "F", "I", "UP"]

@@ -10,6 +10,9 @@ on:
       - "*.ipynb"
       - "pyproject.toml"
       - "requirements*.txt"
+      - "data/**"
+      - "data_quality/**"
+      - "docs/**"
       - "examples/**"
       - "tests/**"
   push:
@@ -21,6 +24,9 @@ on:
       - "*.ipynb"
       - "pyproject.toml"
       - "requirements*.txt"
+      - "data/**"
+      - "data_quality/**"
+      - "docs/**"
       - "examples/**"
       - "tests/**"
   workflow_dispatch:
@@ -72,14 +78,14 @@ jobs:
           python -m pip install -e ".[dev,ml,notebook]"
 
       - name: Compile Python sources
-        run: python -m compileall -q main.py examples tests
+        run: python -m compileall -q main.py data_quality examples tests
 
       - name: Run Ruff lint checks
         id: ruff-lint
         continue-on-error: true
         shell: pwsh
         run: |
-          $output = & python -m ruff check main.py examples tests 2>&1
+          $output = & python -m ruff check main.py data_quality examples tests 2>&1
           $exitCode = $LASTEXITCODE
           $output | Tee-Object -FilePath ruff-lint.txt
           exit $exitCode
@@ -89,16 +95,40 @@ jobs:
         continue-on-error: true
         shell: pwsh
         run: |
-          $output = & python -m ruff format --check main.py examples tests 2>&1
+          $output = & python -m ruff format --check main.py data_quality examples tests 2>&1
           $exitCode = $LASTEXITCODE
           $output | Tee-Object -FilePath ruff-format.txt
           exit $exitCode
 
       - name: Run pytest suite
-        run: python -m pytest
+        id: pytest
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $output = & python -m pytest 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | Tee-Object -FilePath pytest.txt
+          exit $exitCode
 
       - name: Run baseline entry point
         run: python main.py
+
+      - name: Run data-quality workflow
+        run: >-
+          python -m data_quality
+          --input data/raw/training_results.csv
+          --output .ci-output/data-quality
+
+      - name: Verify data-quality control totals
+        shell: pwsh
+        run: |
+          $report = Get-Content ".ci-output/data-quality/quality_report.json" -Raw | ConvertFrom-Json
+          if ($report.input_rows -ne 15) { throw "Unexpected input row count." }
+          if ($report.accepted_rows -ne 8) { throw "Unexpected accepted row count." }
+          if ($report.rejected_rows -ne 7) { throw "Unexpected rejected row count." }
+          if ($report.exact_duplicate_rows_removed -ne 1) {
+              throw "Unexpected exact duplicate count."
+          }
 
       - name: Run optional ML example
         run: python examples/optional/logistic_regression_basics.py
@@ -108,6 +138,15 @@ jobs:
           python -c "from pathlib import Path; Path('.ci-output').mkdir(exist_ok=True)"
           jupyter nbconvert --to notebook --execute dataspell_test.ipynb --output environment-check.executed.ipynb --output-dir .ci-output --ExecutePreprocessor.timeout=120
 
+      - name: Upload data-quality outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-quality-output-${{ matrix.os }}
+          path: .ci-output/data-quality
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Upload quality diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -116,16 +155,22 @@ jobs:
           path: |
             ruff-lint.txt
             ruff-format.txt
+            pytest.txt
           if-no-files-found: ignore
           retention-days: 3
 
-      - name: Enforce Ruff quality gate
+      - name: Enforce quality gate
         if: always()
         shell: pwsh
         run: |
           $lintOutcome = "${{ steps.ruff-lint.outcome }}"
           $formatOutcome = "${{ steps.ruff-format.outcome }}"
+          $pytestOutcome = "${{ steps.pytest.outcome }}"
 
-          if ($lintOutcome -ne "success" -or $formatOutcome -ne "success") {
-              throw "Ruff quality gate failed. Download the quality diagnostics artifact for details."
+          if (
+              $lintOutcome -ne "success" -or
+              $formatOutcome -ne "success" -or
+              $pytestOutcome -ne "success"
+          ) {
+              throw "Quality gate failed. Download the diagnostics artifact for details."
           }
