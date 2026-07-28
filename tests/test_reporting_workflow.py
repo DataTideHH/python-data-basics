@@ -58,17 +58,24 @@ def test_rejection_reason_summary_is_complete_and_deterministic(tmp_path: Path) 
     summary = build_rejection_reason_summary(inputs.rejected)
 
     assert list(summary.columns) == ["rejection_reason", "rejected_row_count"]
-    assert summary["rejected_row_count"].eq(1).all()
-    assert set(summary["rejection_reason"]) == {
+    assert dict(zip(summary["rejection_reason"], summary["rejected_row_count"], strict=True)) == {
+        "pass_score_above_max_score": 2,
+        "score_above_max_score": 2,
+        "duplicate_exact": 1,
+        "invalid_assessment_date": 1,
+        "max_score_not_positive": 1,
+        "missing_learner_id": 1,
+        "missing_score": 1,
+    }
+    assert list(summary["rejection_reason"]) == [
+        "pass_score_above_max_score",
+        "score_above_max_score",
         "duplicate_exact",
         "invalid_assessment_date",
         "max_score_not_positive",
         "missing_learner_id",
         "missing_score",
-        "pass_score_above_max_score",
-        "score_above_max_score",
-    }
-    assert list(summary["rejection_reason"]) == sorted(summary["rejection_reason"])
+    ]
 
 
 def test_persisted_kpi_mismatch_is_rejected(tmp_path: Path) -> None:
@@ -93,12 +100,8 @@ def test_generated_svg_charts_are_nonempty_and_labeled(tmp_path: Path) -> None:
     data_quality_dir = prepare_data_quality_outputs(tmp_path)
     result = run_reporting(data_quality_dir, tmp_path / "reporting")
 
-    average_svg = (result.output_dir / "average_score_by_module.svg").read_text(
-        encoding="utf-8"
-    )
-    pass_rate_svg = (result.output_dir / "pass_rate_by_module.svg").read_text(
-        encoding="utf-8"
-    )
+    average_svg = (result.output_dir / "average_score_by_module.svg").read_text(encoding="utf-8")
+    pass_rate_svg = (result.output_dir / "pass_rate_by_module.svg").read_text(encoding="utf-8")
 
     assert "<svg" in average_svg
     assert "Average score by module" in average_svg
