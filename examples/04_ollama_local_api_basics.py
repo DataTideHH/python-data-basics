@@ -1,20 +1,14 @@
-"""
-Optional Ollama local API example.
+"""Optional Ollama localhost API example.
 
-This example demonstrates a local JSON request/response workflow.
-It only works if:
-- Ollama is installed
-- Ollama is running locally
-- the configured model is available
-
-No cloud API key is used.
-No credentials or tokens are used.
+The request works only when Ollama is running locally and the configured model
+is available. It uses no cloud API key, credentials or tokens.
 """
+
+from __future__ import annotations
 
 import json
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "llama3.2"
