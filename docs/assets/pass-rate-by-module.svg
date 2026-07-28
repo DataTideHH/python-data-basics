@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">Pass rate by module</title>
+  <desc id="desc">Data Quality 50.00 percent, Process Analysis 50.00 percent, Python Basics 100.00 percent, SQL Basics 66.67 percent.</desc>
+  <rect width="900" height="520" fill="#ffffff"/>
+  <text x="450" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#0A2F4F">Pass rate by module</text>
+  <line x1="90" y1="430" x2="850" y2="430" stroke="#334155" stroke-width="2"/>
+  <line x1="90" y1="90" x2="90" y2="430" stroke="#334155" stroke-width="2"/>
+  <g font-family="Arial, sans-serif" font-size="15" fill="#475569">
+    <text x="72" y="435" text-anchor="end">0%</text>
+    <text x="72" y="350" text-anchor="end">25%</text>
+    <text x="72" y="265" text-anchor="end">50%</text>
+    <text x="72" y="180" text-anchor="end">75%</text>
+    <text x="72" y="95" text-anchor="end">100%</text>
+  </g>
+  <g stroke="#e2e8f0" stroke-width="1">
+    <line x1="90" y1="345" x2="850" y2="345"/>
+    <line x1="90" y1="260" x2="850" y2="260"/>
+    <line x1="90" y1="175" x2="850" y2="175"/>
+    <line x1="90" y1="90" x2="850" y2="90"/>
+  </g>
+  <g fill="#0A2F4F">
+    <rect x="135" y="260" width="120" height="170" rx="5"/>
+    <rect x="325" y="260" width="120" height="170" rx="5"/>
+    <rect x="515" y="90" width="120" height="340" rx="5"/>
+    <rect x="705" y="203" width="120" height="227" rx="5"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#0A2F4F" text-anchor="middle">
+    <text x="195" y="247">50.00%</text>
+    <text x="385" y="247">50.00%</text>
+    <text x="575" y="77">100.00%</text>
+    <text x="765" y="190">66.67%</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="15" fill="#334155" text-anchor="middle">
+    <text x="195" y="458">Data Quality</text>
+    <text x="385" y="458">Process Analysis</text>
+    <text x="575" y="458">Python Basics</text>
+    <text x="765" y="458">SQL Basics</text>
+  </g>
+  <text x="450" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Verified synthetic fixture · 5 of 8 accepted results passed</text>
+</svg>
