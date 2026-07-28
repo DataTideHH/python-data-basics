@@ -44,12 +44,12 @@ def test_sample_workflow_writes_verified_outputs(tmp_path: Path) -> None:
     }
     assert {path.name for path in tmp_path.iterdir()} == expected_files
 
-    persisted_report = json.loads((tmp_path / "quality_report.json").read_text(encoding="utf-8"))
-    assert persisted_report == result.report
+    report_text = (tmp_path / "quality_report.json").read_text(encoding="utf-8")
+    assert json.loads(report_text) == result.report
 
 
-def test_module_kpis_are_deterministic() -> None:
-    result = run_workflow(SAMPLE_INPUT, Path(".ci-output/test-module-kpis"))
+def test_module_kpis_are_deterministic(tmp_path: Path) -> None:
+    result = run_workflow(SAMPLE_INPUT, tmp_path)
     kpis = result.module_kpis.set_index("module")
 
     assert list(result.module_kpis["module"]) == [
@@ -127,7 +127,9 @@ def test_whitespace_and_identifiers_are_normalised() -> None:
 
 
 def test_empty_cleaned_frame_has_stable_kpi_schema() -> None:
-    empty = pd.DataFrame(columns=["module", "learner_id", "result_id", "score_percentage", "passed"])
+    empty = pd.DataFrame(
+        columns=["module", "learner_id", "result_id", "score_percentage", "passed"]
+    )
 
     kpis = build_module_kpis(empty)
 
