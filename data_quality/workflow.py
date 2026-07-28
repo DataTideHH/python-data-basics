@@ -125,9 +125,7 @@ def validate_and_clean(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame,
 
     cleaned = working.loc[accepted_indexes, ["source_row", *REQUIRED_COLUMNS]].copy()
     cleaned["assessment_date"] = cleaned["assessment_date"].dt.strftime("%Y-%m-%d")
-    cleaned["score_percentage"] = (
-        cleaned["score"].div(cleaned["max_score"]).mul(100).round(2)
-    )
+    cleaned["score_percentage"] = cleaned["score"].div(cleaned["max_score"]).mul(100).round(2)
     cleaned["passed"] = cleaned["score"].ge(cleaned["pass_score"])
     cleaned = cleaned.sort_values(["assessment_date", "result_id"], kind="stable").reset_index(
         drop=True
