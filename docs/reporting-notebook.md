@@ -78,6 +78,7 @@ The committed synthetic fixture produces these reporting controls:
 | Overall average score | 70.00% |
 | Overall pass rate | 62.50% |
 | Distinct rejection reasons | 7 |
+| Rejection-reason occurrences | 9 |
 | KPI reconciliation | passed |
 
 The reporting workflow recalculates module KPIs from `cleaned_results.csv` and compares them with `module_kpis.csv`. The comparison permits harmless dtype differences introduced by CSV persistence but not value differences.
@@ -86,17 +87,19 @@ The reporting workflow recalculates module KPIs from `cleaned_results.csv` and c
 
 `rejected_results.csv` retains pipe-separated reason codes per rejected source row. Reporting explodes those codes and creates one deterministic count per reason.
 
-For the committed fixture, each of these reasons occurs once:
+A rejected row can violate more than one rule. The fixture has seven rejected rows but nine reason occurrences:
 
-- `duplicate_exact`
-- `invalid_assessment_date`
-- `max_score_not_positive`
-- `missing_learner_id`
-- `missing_score`
-- `pass_score_above_max_score`
-- `score_above_max_score`
+| Rejection reason | Occurrences |
+|---|---:|
+| `pass_score_above_max_score` | 2 |
+| `score_above_max_score` | 2 |
+| `duplicate_exact` | 1 |
+| `invalid_assessment_date` | 1 |
+| `max_score_not_positive` | 1 |
+| `missing_learner_id` | 1 |
+| `missing_score` | 1 |
 
-This keeps quality loss visible rather than presenting only accepted records.
+This distinction is intentional. A non-positive maximum score can also cause the score and pass threshold to exceed that maximum, so suppressing secondary violations would hide useful quality information.
 
 ## Notebook
 
@@ -110,6 +113,8 @@ The notebook contains:
 4. pass-rate chart
 5. explicit control-total assertions
 6. final `Reporting notebook verification passed.` marker
+
+The notebook resolves the repository root from its current working directory, so it behaves consistently when launched from the repository root, an IDE or `nbconvert` from the `notebooks/` directory.
 
 The committed notebook contains no outputs, execution counts, local paths or IDE timestamps. CI executes a temporary copy after the data-quality and reporting command-line workflows have succeeded.
 
