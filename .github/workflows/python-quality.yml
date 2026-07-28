@@ -14,6 +14,8 @@ on:
       - "data_quality/**"
       - "docs/**"
       - "examples/**"
+      - "notebooks/**"
+      - "reporting/**"
       - "tests/**"
   push:
     branches:
@@ -28,6 +30,8 @@ on:
       - "data_quality/**"
       - "docs/**"
       - "examples/**"
+      - "notebooks/**"
+      - "reporting/**"
       - "tests/**"
   workflow_dispatch:
 
@@ -42,7 +46,7 @@ jobs:
   quality:
     name: Python 3.12 · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
@@ -78,14 +82,14 @@ jobs:
           python -m pip install -e ".[dev,ml,notebook]"
 
       - name: Compile Python sources
-        run: python -m compileall -q main.py data_quality examples tests
+        run: python -m compileall -q main.py data_quality reporting examples tests
 
       - name: Run Ruff lint checks
         id: ruff-lint
         continue-on-error: true
         shell: pwsh
         run: |
-          $output = & python -m ruff check main.py data_quality examples tests 2>&1
+          $output = & python -m ruff check main.py data_quality reporting examples tests 2>&1
           $exitCode = $LASTEXITCODE
           $output | Tee-Object -FilePath ruff-lint.txt
           exit $exitCode
@@ -95,7 +99,7 @@ jobs:
         continue-on-error: true
         shell: pwsh
         run: |
-          $output = & python -m ruff format --check main.py data_quality examples tests 2>&1
+          $output = & python -m ruff format --check main.py data_quality reporting examples tests 2>&1
           $exitCode = $LASTEXITCODE
           $output | Tee-Object -FilePath ruff-format.txt
           exit $exitCode
@@ -130,20 +134,64 @@ jobs:
               throw "Unexpected exact duplicate count."
           }
 
+      - name: Run reporting workflow
+        run: >-
+          python -m reporting
+          --input .ci-output/data-quality
+          --output .ci-output/reporting
+
+      - name: Verify reporting control totals
+        shell: pwsh
+        run: |
+          $report = Get-Content ".ci-output/reporting/reporting_summary.json" -Raw | ConvertFrom-Json
+          if ($report.kpi_reconciliation -ne "passed") { throw "KPI reconciliation failed." }
+          if ($report.module_count -ne 4) { throw "Unexpected module count." }
+          if ($report.result_count -ne 8) { throw "Unexpected reporting result count." }
+          if ($report.rejected_row_count -ne 7) { throw "Unexpected rejected row count." }
+          if ($report.overall_average_score_percentage -ne 70.0) {
+              throw "Unexpected overall average score."
+          }
+          if ($report.overall_pass_rate_percentage -ne 62.5) {
+              throw "Unexpected overall pass rate."
+          }
+          if ($report.rejection_reason_count -ne 7) {
+              throw "Unexpected rejection reason count."
+          }
+          if (-not (Test-Path ".ci-output/reporting/average_score_by_module.svg")) {
+              throw "Average-score chart is missing."
+          }
+          if (-not (Test-Path ".ci-output/reporting/pass_rate_by_module.svg")) {
+              throw "Pass-rate chart is missing."
+          }
+
       - name: Run optional ML example
         run: python examples/optional/logistic_regression_basics.py
 
-      - name: Execute clean notebook copy
+      - name: Execute environment notebook
         run: |
           python -c "from pathlib import Path; Path('.ci-output').mkdir(exist_ok=True)"
           jupyter nbconvert --to notebook --execute dataspell_test.ipynb --output environment-check.executed.ipynb --output-dir .ci-output --ExecutePreprocessor.timeout=120
 
-      - name: Upload data-quality outputs
+      - name: Execute reporting verification notebook
+        run: >-
+          jupyter nbconvert
+          --to notebook
+          --execute notebooks/reporting_verification.ipynb
+          --output reporting-verification.executed.ipynb
+          --output-dir .ci-output
+          --ExecutePreprocessor.timeout=120
+
+      - name: Upload verified workflow outputs
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: data-quality-output-${{ matrix.os }}
-          path: .ci-output/data-quality
+          name: verified-reporting-${{ matrix.os }}
+          path: |
+            .ci-output/data-quality
+            .ci-output/reporting
+            .ci-output/reporting-notebook
+            .ci-output/environment-check.executed.ipynb
+            .ci-output/reporting-verification.executed.ipynb
           if-no-files-found: ignore
           retention-days: 3
 
