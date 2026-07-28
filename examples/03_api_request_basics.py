@@ -1,17 +1,14 @@
-"""
-Basic public API request example.
+"""Basic public API request example.
 
-This example calls the Open-Meteo API for Hamburg.
-It uses only Python standard-library modules for the HTTP request.
-
-No API key is required.
-No credentials or tokens are used.
+This module calls Open-Meteo for Hamburg with Python standard-library tools.
+The endpoint requires no API key, credentials or tokens.
 """
+
+from __future__ import annotations
 
 import json
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
-
 
 OPEN_METEO_URL = (
     "https://api.open-meteo.com/v1/forecast"
